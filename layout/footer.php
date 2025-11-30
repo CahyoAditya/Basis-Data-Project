@@ -10,7 +10,7 @@
         wrapper.classList.add("toggled");
     }
 
-    // EVENT SAAT KLIK TOMBOL:
+    // Kalo klik tombol
     toggleButton.onclick = function (e) {
         e.preventDefault();
         
