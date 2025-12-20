@@ -30,6 +30,8 @@ if (isset($_POST['confirm_delete_id'])) {
         // Simpan perubahan permanen
         $pdo->commit();
         $success_msg = "Data Pemasok beserta seluruh riwayat transaksinya berhasil dihapus.";
+        
+        unset($_GET['hapus_id']);
     } catch (PDOException $e) {
         // Kalau error, balikin kondisi awal
         $pdo->rollBack();

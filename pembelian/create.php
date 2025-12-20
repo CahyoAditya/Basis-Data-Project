@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <p>Data pembelian multi-item telah disimpan dan stok diperbarui.</p>
               </div>";
         // Refresh halaman biar form bersih lagi
-        echo "<meta http-equiv='refresh' content='2'>"; 
+        echo "<meta http-equiv='refresh' content='2;url=index.php'>"; 
 
     } catch (Exception $e) {
         // Kalau ada error, batalin semua perubahan
@@ -123,7 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <hr>
 
-                    <!-- Ini buat tabel input barang (Bisa nambah baris btw) -->
                     <h6 class="text-primary fw-bold mb-3"><i class="bi bi-list-check me-2"></i>Daftar Barang yang Dibeli</h6>
                     
                     <div class="table-responsive mb-3">
@@ -137,7 +136,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
-                                <!-- Baris Pertama -->
                                 <tr>
                                     <td>
                                         <select name="bahan_id[]" class="form-select" required>
@@ -168,7 +166,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <i class="bi bi-plus-lg me-1"></i> Tambah Baris Barang
                     </button>
 
-                    <!-- Tampilan Total & Tombol Simpan -->
                     <div class="row justify-content-end">
                         <div class="col-md-5">
                             <div class="card bg-light border-0 p-3">
@@ -176,9 +173,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <span class="fw-bold text-muted">Grand Total:</span>
                                     <h4 class="fw-bold text-primary m-0" id="displayGrandTotal">Rp 0</h4>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
-                                    Simpan Semua Transaksi
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <a href="index.php" class="btn btn-secondary fw-bold w-100 py-2">Batal</a>
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
+                                        Simpan Transaksi
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -189,7 +189,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </div>
 
-<!-- Script buat nambah baris & hitung duit otomatis -->
 <script>
     function hitungGrandTotal() {
         let total = 0;

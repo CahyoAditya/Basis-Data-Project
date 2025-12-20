@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
 $port = "5432";
-$dbname = "ManajemenUsahaRumahan";
+$dbname = "manajemenusaharumahan";
 $user = "postgres";
 $password = "password";
 
@@ -14,5 +14,5 @@ try {
     die("Koneksi gagal: " . $e->getMessage());
 }
 
-$base_url = "http://localhost/project"; 
+$base_url = "http://localhost/usaharumahan"; 
 ?>

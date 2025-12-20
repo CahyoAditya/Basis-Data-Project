@@ -1,7 +1,7 @@
 <?php
 // Cek alamat dasar biar link gak error
 if (!isset($base_url)) {
-    $base_url = "http://localhost/project";
+    $base_url = "http://localhost/usaharumahan";
 }
 
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -27,25 +27,18 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
             <i class="bi bi-shop-window text-primary"></i> 
             <span class="sidebar-text ms-2">Usaha Rumahan</span>
         </div>
-        <div class="list-group list-group-flush mt-3">
+        
+        <div class="list-group list-group-flush mt-2">
             
             <a href="<?= $base_url ?>/index.php" 
-               class="list-group-item list-group-item-action <?= ($current_page == 'index.php' && $current_dir == 'project') ? 'active-link' : '' ?>">
+               class="list-group-item list-group-item-action <?= ($current_page == 'index.php' && $current_dir == 'usaharumahan') ? 'active-link' : '' ?>">
                 <i class="bi bi-speedometer2" title="Dashboard"></i> 
                 <span class="sidebar-text">Dashboard</span>
             </a>
 
-            <a href="<?= $base_url ?>/bahan_baku/index.php" 
-               class="list-group-item list-group-item-action <?= ($current_dir == 'bahan_baku') ? 'active-link' : '' ?>">
-                <i class="bi bi-box-seam" title="Bahan Baku"></i> 
-                <span class="sidebar-text">Bahan Baku</span>
-            </a>
-
-            <a href="<?= $base_url ?>/pemasok/index.php" 
-               class="list-group-item list-group-item-action <?= ($current_dir == 'pemasok') ? 'active-link' : '' ?>">
-                <i class="bi bi-truck" title="Data Pemasok"></i> 
-                <span class="sidebar-text">Data Pemasok</span>
-            </a>
+            <div class="sidebar-text px-3 mt-3 mb-1 text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                Transaksi & Produksi
+            </div>
 
             <a href="<?= $base_url ?>/pembelian/index.php" 
                 class="list-group-item list-group-item-action <?= ($current_dir == 'pembelian') ? 'active-link' : '' ?>">
@@ -58,7 +51,52 @@ $current_dir = basename(dirname($_SERVER['PHP_SELF']));
                 <i class="bi bi-gear-wide-connected" title="Sesi Produksi"></i> 
                 <span class="sidebar-text">Sesi Produksi</span>
             </a>
+
+            <a href="<?= $base_url ?>/penjualan/index.php" 
+                class="list-group-item list-group-item-action <?= ($current_dir == 'penjualan') ? 'active-link' : '' ?>">
+                <i class="bi bi-receipt" title="Penjualan"></i> 
+                <span class="sidebar-text">Penjualan</span>
+            </a>
+
+            <div class="sidebar-text px-3 mt-3 mb-1 text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                Stok
+            </div>
+
+            <a href="<?= $base_url ?>/bahan_baku/index.php" 
+               class="list-group-item list-group-item-action <?= ($current_dir == 'bahan_baku') ? 'active-link' : '' ?>">
+                <i class="bi bi-box-seam" title="Bahan Baku"></i> 
+                <span class="sidebar-text">Bahan Baku</span>
+            </a>
+
+            <a href="<?= $base_url ?>/produk_jadi/index.php" 
+                class="list-group-item list-group-item-action <?= ($current_dir == 'produk_jadi') ? 'active-link' : '' ?>">
+                <i class="bi bi-box-seam-fill" title="Produk Jadi"></i> 
+                <span class="sidebar-text">Produk Jadi</span>
+            </a>
+
+            <div class="sidebar-text px-3 mt-3 mb-1 text-white-50 small fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                Data Master
+            </div>
+
+            <a href="<?= $base_url ?>/pemasok/index.php" 
+               class="list-group-item list-group-item-action <?= ($current_dir == 'pemasok') ? 'active-link' : '' ?>">
+                <i class="bi bi-truck" title="Data Pemasok"></i> 
+                <span class="sidebar-text">Data Pemasok</span>
+            </a>
             
+            <a href="<?= $base_url ?>/karyawan/index.php" 
+                class="list-group-item list-group-item-action <?= ($current_dir == 'karyawan') ? 'active-link' : '' ?>">
+                <i class="bi bi-people" title="Data Karyawan"></i> 
+                <span class="sidebar-text">Data Karyawan</span>
+            </a>
+
+            <a href="<?= $base_url ?>/pelanggan/index.php" 
+                class="list-group-item list-group-item-action <?= ($current_dir == 'pelanggan') ? 'active-link' : '' ?>">
+                <i class="bi bi-people-fill" title="Pelanggan"></i> 
+                <span class="sidebar-text">Pelanggan</span>
+            </a>
+            
+            <div class="mb-5"></div>
         </div>
     </div>
 

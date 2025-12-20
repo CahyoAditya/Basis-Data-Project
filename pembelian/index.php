@@ -2,46 +2,69 @@
 include '../config/db.php';
 include '../layout/header.php';
 
-// Buat hapus transaksi
-if (isset($_GET['hapus_id'])) {
-    $id = $_GET['hapus_id'];
+$msg = "";
+$confirm_data = null;
+$items_to_revert = [];
+$is_safe_delete = true;
+
+if (isset($_POST['delete_final_id'])) {
+    $id = $_POST['delete_final_id'];
     try {
-        // Mulai transaksi db
         $pdo->beginTransaction();
-        
-        // 1. Cek dulu barang apa aja yang dulu dibeli di transaksi ini
+
+        // Ambil lagi data barang untuk dikurangi stoknya
         $stmtGet = $pdo->prepare("SELECT bahan_baku_id, jumlah FROM detail_pembelian WHERE transaksi_pembelian_id = :id");
         $stmtGet->execute(['id' => $id]);
         $items = $stmtGet->fetchAll();
 
-        // 2. Kurangi stok di gudang (karena pembeliannya dibatalin)
+        // Kurangi Stok Gudang (Revert Stock)
         $stmtRevert = $pdo->prepare("UPDATE bahan_baku SET stok_bahan = stok_bahan - :qty WHERE bahan_baku_id = :bid");
         foreach ($items as $item) {
             $stmtRevert->execute(['qty' => $item['jumlah'], 'bid' => $item['bahan_baku_id']]);
         }
         
-        // 3. Hapus data transaksinya (detail & header)
+        // Hapus Data Transaksi
         $pdo->prepare("DELETE FROM detail_pembelian WHERE transaksi_pembelian_id = :id")->execute(['id' => $id]);
         $pdo->prepare("DELETE FROM transaksi_pembelian WHERE transaksi_pembelian_id = :id")->execute(['id' => $id]);
         
-        // Simpan kalo udah
         $pdo->commit();
-        echo "<div class='alert alert-success alert-dismissible fade show'>Transaksi dihapus & Stok dikoreksi.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
+        $msg = "<div class='alert alert-success alert-dismissible fade show'>...Transaksi berhasil dihapus...</div>";
+
+        unset($_GET['hapus_id']);
 
     } catch (PDOException $e) {
-        // Kalau error, batalin semua
         $pdo->rollBack();
-        
-        // Cek error stok minus (kalau barang udah kepake produksi, gak bisa dihapus)
-        if ($e->getCode() == '23514') {
-            echo "<div class='alert alert-danger'>Gagal: Barang sudah terpakai produksi (Stok tidak cukup untuk ditarik).</div>";
-        } else {
-            echo "<div class='alert alert-danger'>Error: " . $e->getMessage() . "</div>";
-        }
+        $msg = "<div class='alert alert-danger'><strong>Gagal:</strong> " . $e->getMessage() . "</div>";
     }
 }
 
-// Ambil data pembelian + nama pemasoknya
+if (isset($_GET['hapus_id'])) {
+    $id = $_GET['hapus_id'];
+    
+    // Ambil Data Item + Stok Gudang Saat Ini
+    $stmtCheck = $pdo->prepare("
+        SELECT dp.*, b.nama_bahan, b.stok_bahan AS stok_gudang_sekarang 
+        FROM detail_pembelian dp
+        JOIN bahan_baku b ON dp.bahan_baku_id = b.bahan_baku_id
+        WHERE dp.transaksi_pembelian_id = :id
+    ");
+    $stmtCheck->execute(['id' => $id]);
+    $items_to_revert = $stmtCheck->fetchAll();
+
+    if (count($items_to_revert) > 0) {
+        $confirm_data = $id;
+        
+        // Cek Safety: Apakah stok gudang cukup buat ditarik?
+        foreach ($items_to_revert as $item) {
+            if ($item['stok_gudang_sekarang'] < $item['jumlah']) {
+                $is_safe_delete = false;
+            }
+        }
+    } else {
+        $msg = "<div class='alert alert-warning'>Data transaksi tidak ditemukan atau kosong.</div>";
+    }
+}
+
 $sql = "SELECT tp.*, p.nama_pemasok FROM transaksi_pembelian tp JOIN pemasok p ON tp.pemasok_id = p.pemasok_id ORDER BY tp.tanggal_pembelian DESC, tp.transaksi_pembelian_id DESC";
 $stmt = $pdo->query($sql);
 ?>
@@ -51,6 +74,76 @@ $stmt = $pdo->query($sql);
     <a href="create.php" class="btn btn-primary shadow-sm"><i class="bi bi-cart-plus me-2"></i>Catat Pembelian</a>
 </div>
 
+<?= $msg ?>
+
+<?php if ($confirm_data): ?>
+<div class="card border-danger shadow-sm mb-4">
+    <div class="card-header bg-danger text-white fw-bold">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>Konfirmasi Pembatalan Transaksi
+    </div>
+    <div class="card-body">
+        <p>Anda hendak menghapus transaksi <strong><?= $confirm_data ?></strong>.</p>
+        <p>Tindakan ini akan <strong>MENARIK KEMBALI (MENGURANGI)</strong> stok bahan baku berikut dari gudang:</p>
+        
+        <table class="table table-bordered table-sm small align-middle">
+            <thead class="bg-light">
+                <tr>
+                    <th>Nama Bahan</th>
+                    <th class="text-center">Qty Dibatalkan</th>
+                    <th class="text-center">Stok Gudang Saat Ini</th>
+                    <th class="text-center">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($items_to_revert as $item): 
+                    $qty_tarik = $item['jumlah'];
+                    $stok_now = $item['stok_gudang_sekarang'];
+                    $aman = ($stok_now >= $qty_tarik);
+                ?>
+                <tr>
+                    <td class="fw-bold"><?= $item['nama_bahan'] ?></td>
+                    <td class="text-center text-danger fw-bold">-<?= $qty_tarik ?></td>
+                    <td class="text-center"><?= $stok_now ?></td>
+                    <td class="text-center">
+                        <?php if ($aman): ?>
+                            <span class="badge bg-success">Aman</span>
+                        <?php else: ?>
+                            <span class="badge bg-danger">Stok Kurang!</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <?php if (!$is_safe_delete): ?>
+            <div class="alert alert-danger d-flex align-items-center mb-0">
+                <i class="bi bi-x-circle-fill fs-4 me-3"></i>
+                <div>
+                    <strong>TIDAK DAPAT MENGHAPUS!</strong><br>
+                    Beberapa bahan baku sudah terpakai (Stok Gudang < Qty Pembelian).<br>
+                    Menghapus transaksi ini akan menyebabkan stok menjadi minus.
+                </div>
+            </div>
+            <div class="mt-3 text-end">
+                <a href="index.php" class="btn btn-secondary px-4">Kembali</a>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-warning d-flex align-items-center mb-3">
+                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                <div>
+                    Stok gudang mencukupi. Klik tombol di bawah untuk memproses penghapusan.
+                </div>
+            </div>
+            <form method="POST" class="text-end">
+                <input type="hidden" name="delete_final_id" value="<?= $confirm_data ?>">
+                <a href="index.php" class="btn btn-light border me-2">Batal</a>
+                <button type="submit" class="btn btn-danger fw-bold">Ya, Hapus Transaksi & Kurangi Stok</button>
+            </form>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         
@@ -74,9 +167,12 @@ $stmt = $pdo->query($sql);
                             <td><?= htmlspecialchars($row['nama_pemasok']) ?></td>
                             <td class="fw-bold text-success">Rp <?= number_format($row['total_harga_beli'], 0, ',', '.') ?></td>
                             <td class="text-end pe-4">
+                                <a href="detail.php?id=<?= $row['transaksi_pembelian_id'] ?>" 
+                                   class="btn btn-sm btn-outline-primary me-1" title="Lihat Detail">
+                                   <i class="bi bi-eye"></i>
+                                </a>
                                 <a href="index.php?hapus_id=<?= $row['transaksi_pembelian_id'] ?>" 
-                                   class="btn btn-sm btn-outline-danger"
-                                   onclick="return confirm('PERINGATAN: Menghapus transaksi ini akan MENGURANGI stok bahan baku. Lanjutkan?')">
+                                   class="btn btn-sm btn-outline-danger">
                                    <i class="bi bi-trash"></i> Hapus
                                 </a>
                             </td>

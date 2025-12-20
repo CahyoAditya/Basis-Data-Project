@@ -8,7 +8,7 @@ $delete_target = "";
 $dep_beli = 0;
 $dep_prod = 0;
 
-// LOGIKA HAPUS PAKSA (JIKA USER SUDAH KONFIRMASI YES)
+// Logic buat hapus paksa (jika dan hanya jika user udah setuju)
 if (isset($_POST['confirm_id'])) {
     $id = $_POST['confirm_id'];
     try {
@@ -25,6 +25,8 @@ if (isset($_POST['confirm_id'])) {
         // Commit perubahan kalau sukses semua
         $pdo->commit();
         $msg = "<div class='alert alert-success'>Data Bahan Baku & Riwayatnya Berhasil Dihapus.</div>";
+        
+        unset($_GET['hapus_id']);
     } catch (Exception $e) {
         // Kalau error, balikin kondisi semula (Rollback)
         $pdo->rollBack();
@@ -32,7 +34,7 @@ if (isset($_POST['confirm_id'])) {
     }
 }
 
-// LOGIKA CEK SEBELUM HAPUS (SAAT TOMBOL DIKLIK)
+// Logic buat cek sebelum hapus
 if (isset($_GET['hapus_id'])) {
     $id = $_GET['hapus_id'];
     

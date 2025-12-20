@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'tid' => $id
         ]);
 
-        // 4. Tambah stok di gudang sesuai jumlah BARU yang diinput
+        // 4. Tambah stok di gudang sesuai jumlah baru yang diinput
         $stmtNewStock = $pdo->prepare("UPDATE bahan_baku SET stok_bahan = stok_bahan + :new_qty WHERE bahan_baku_id = :new_bid");
         $stmtNewStock->execute([
             'new_qty' => $_POST['jumlah_beli'],
